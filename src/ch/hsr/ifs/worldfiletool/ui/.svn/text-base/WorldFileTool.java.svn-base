@@ -1,0 +1,229 @@
+package ch.hsr.ifs.worldfiletool.ui;
+
+import java.awt.Font;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Properties;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+
+public class Components {
+	
+	/**
+	 * Create JButton.
+	 * 
+	 * @param text
+	 * @param rect the rectangle
+	 * @param event
+	 * 
+	 * @return the jbutton
+	 */
+	JButton create_button(String text, Rectangle rect, int event) {
+		JButton button = new JButton();
+		button.setText(text);
+		button.setBounds(rect);
+		button.setToolTipText(text);
+		button.setFont(new Font("Arial", Font.PLAIN, 11));
+		button.setMnemonic(event);
+		return button;
+	}
+	
+	/**
+	 * create textfields.
+	 * 
+	 * @param lbl the label
+	 * @param rect the rectangle
+	 * 
+	 * @return JTextField
+	 */
+	JTextField create_text(String lbl, Rectangle rect, JPanel panel) {
+		JLabel label = new JLabel();
+		label.setText(lbl);
+		label.setBounds(rect);
+		label.setFont(new Font("Arial", Font.PLAIN, 11));
+		panel.add(label);
+		JTextField text = new JTextField();
+		text.setBounds(rect.x, rect.y+15, rect.width, rect.height+5);
+		JPopupMenu popupMenu = popupMenu(text);
+		text.setComponentPopupMenu(popupMenu);
+		return text;
+	}
+	
+	/**
+	 * check if image file exists and display either a tick or cross.
+	 * 
+	 * @param file
+	 */
+	void check_image(File file, JLabel icon) {
+		String pic;
+		String tooltip;
+		if (file.exists()) {
+			pic = "/ch/hsr/ifs/worldfiletool/ui/images/tick.png";
+			tooltip = "File found";
+		} else {
+			pic = "/ch/hsr/ifs/worldfiletool/ui/images/cross.png";
+			tooltip = "File does not exists";
+		}
+		icon.setIcon(new ImageIcon(getClass().getResource(pic)));
+		icon.setToolTipText(tooltip);
+	}
+	
+	/**
+	 * save properties.
+	 */
+	void save(Properties properties) {
+		try {
+			properties.store(new FileWriter("WorldFileTool.cfg"), "WorldFileTool Config");
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	/**
+	 * load properties.
+	 */
+	void load(Properties properties) {
+		try {
+			properties.load(new FileReader("WorldFileTool.cfg"));
+		} catch (FileNotFoundException e) {
+			System.out.println(e);
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	/**
+	 * MenuBar.
+	 * 
+	 * @return the JMenuBar
+	 */
+	JMenuBar menu_bar(final GUI gui) {
+		// menu bar
+		JMenuBar menuBar = new JMenuBar();
+		
+		// file menu
+		JMenu fileMenu = new JMenu("File");
+		fileMenu.setFont(new Font("Arial", Font.PLAIN, 11));
+		// file menu items
+		
+		final String[] text = { "Import File...", "Export as KML...", "Export as World File" };
+		final int[] event = { KeyEvent.VK_I, KeyEvent.VK_K, KeyEvent.VK_W };
+		final String lbl_import = "import";
+		final String lbl_kml = "kml";
+		final String lbl_wf = "wf";
+		String[] action = { lbl_import, lbl_kml, lbl_wf };
+		
+		ActionListener menuListener = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (e.getActionCommand() == lbl_import) {
+					gui.import_file();
+				} else if (e.getActionCommand() == lbl_kml) {
+					gui.export_kml();
+				} else if (e.getActionCommand() == lbl_wf) {
+					gui.export_worldfile();
+				}
+			}
+		};
+		for (int i = 0; i < text.length; i++) {
+			if (i == 1) {
+				fileMenu.addSeparator();
+			}
+			JMenuItem menuItem = new JMenuItem();
+			menuItem.setText(text[i]);
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(event[i], InputEvent.CTRL_DOWN_MASK));
+			menuItem.setFont(new Font("Arial", Font.PLAIN, 11));
+			menuItem.setActionCommand(action[i]);
+			menuItem.addActionListener(menuListener);
+			fileMenu.add(menuItem);
+		}
+		fileMenu.addSeparator();
+		JMenuItem exitItem = new JMenuItem();
+		exitItem.setText("Exit");
+		exitItem.setFont(new Font("Arial", Font.PLAIN, 11));
+		exitItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				gui.save_and_exit();
+			}
+		});
+		
+		fileMenu.add(exitItem);
+		
+		// help menu
+		JMenu helpMenu = new JMenu("Help");
+		helpMenu.setFont(new Font("Arial", Font.PLAIN, 11));
+		// help menu items
+		JMenuItem aboutItem = new JMenuItem();
+		aboutItem.setText("About");
+		aboutItem.setAccelerator(KeyStroke.getKeyStroke("F1"));
+		aboutItem.setFont(new Font("Arial", Font.PLAIN, 11));
+		aboutItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new About();
+			}
+		});
+		helpMenu.add(aboutItem);
+		menuBar.add(fileMenu);
+		menuBar.add(helpMenu);
+		
+		return menuBar;
+	}
+	
+	/**
+	 * Popupmenu.
+	 * 
+	 * @param textField
+	 * @return popupMenu
+	 */
+	JPopupMenu popupMenu(final JTextField textField) {
+		
+		// PopupMenu on rightclick
+		JPopupMenu popupMenu = new JPopupMenu();
+		
+		// PopupMenu Items
+		final String[] menuItems = new String[] {"Cut", "Copy", "Paste", "Clear"};
+		
+		ActionListener mouseListener = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				if (event.getActionCommand().equals("Cut")) {
+					textField.cut();
+				} else if (event.getActionCommand().equals("Copy")) {
+					textField.copy();
+				} else if (event.getActionCommand().equals("Paste")) {
+					textField.paste();
+				} else if (event.getActionCommand().equals("Clear")) {
+					textField.setText("");
+				}
+			}
+		};
+		for (int i = 0; i < menuItems.length; i++) {
+			JMenuItem menuItem = new JMenuItem(menuItems[i]);
+			if (i == 3) {
+				popupMenu.addSeparator();
+			}
+			menuItem.addActionListener(mouseListener);
+			popupMenu.add(menuItem);
+		}
+		return popupMenu;
+	}
+}

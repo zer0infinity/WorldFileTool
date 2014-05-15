@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project default="release" name="JMapDesk" basedir=".">
+
+	<property name="src.dir" location="src" />
+	<property name="build.dir" location="build" />
+	<property name="doc.dir" location="doc" />
+	<property name="main-class" value="ch.hsr.worldfiletool.Main" />
+	<property name="version" value="0_3_7" />
+
+	<target name="build">
+		<mkdir dir="${build.dir}" />
+		<javac srcdir="${src.dir}" destdir="${build.dir}" optimize="true" debug="true" fork="true" />
+		<copy todir="${build.dir}">
+			<fileset dir="${src.dir}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<jar jarfile="WorldFileTool.jar" basedir="${build.dir}" level="9">
+			<manifest>
+				<attribute name="Main-Class" value="${main-class}" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="javadoc">
+		<mkdir dir="${doc.dir}" />
+		<javadoc destdir="${doc.dir}" package="true">
+			<sourcepath>
+				<pathelement location="${src.dir}" />
+			</sourcepath>
+		</javadoc>
+	</target>
+
+	<target name="clean">
+		<delete dir="${build.dir}" />
+		<delete dir="${doc.dir}" />
+	</target>
+
+	<target name="release" depends="build, javadoc">
+		<zip file="worldfiletool_${version}.zip" level="9">
+			<zipfileset dir=".">
+				<exclude name="**/.*" />
+				<include name="WorldFileTool.jar" />
+				<include name="WorldFileTool.bat" />
+				<include name="doc/**" />
+				<include name="LGPL.txt" />
+				<include name="GPL.txt" />
+				<include name="README.txt" />
+				<include name="Design Document.pdf" />
+			</zipfileset>
+		</zip>
+	</target>
+</project>
